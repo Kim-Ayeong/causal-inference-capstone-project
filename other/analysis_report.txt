@@ -1,0 +1,47 @@
+=== 마케팅 A/B 테스트 분석 보고서 ===
+
+데이터 크기: 588,101 rows
+매칭 후 데이터 크기: 94,096 rows
+
+=== 전환율 분석 ===
+원본 Control 전환율: 0.0179
+원본 Treatment 전환율: 0.0255
+매칭 후 Control 전환율: 0.0185
+매칭 후 Treatment 전환율: 0.0266
+평균 처치 효과(ATE): 0.0082
+
+=== 변수 중요도 ===
+                                            variable  coefficient   std_err        p_value  abs_importance
+const                                          const    -3.771010  0.087037   0.000000e+00        3.771010
+test_group_binary                  test_group_binary    -0.425652  0.062092   7.119427e-12        0.425652
+ads_treatment_interaction  ads_treatment_interaction     0.016188  0.000721  1.432011e-111        0.016188
+most_ads_hour                          most_ads_hour     0.011133  0.004635   1.631286e-02        0.011133
+total_ads                                  total_ads    -0.005191  0.000631   1.828508e-16        0.005191
+
+=== VIF 분석 결과 ===
+                     feature        VIF
+0                      const  12.472801
+1          test_group_binary   1.680343
+2                  total_ads   1.529129
+3              most_ads_hour   1.003976
+4  ads_treatment_interaction   1.482773
+
+=== Logit 분석 결과 ===
+                           Logit Regression Results                           
+==============================================================================
+Dep. Variable:              converted   No. Observations:                94096
+Model:                          Logit   Df Residuals:                    94091
+Method:                           MLE   Df Model:                            4
+Date:                Sat, 30 Nov 2024   Pseudo R-squ.:                 0.05520
+Time:                        12:58:01   Log-Likelihood:                -9584.5
+converged:                       True   LL-Null:                       -10144.
+Covariance Type:            nonrobust   LLR p-value:                3.615e-241
+=============================================================================================
+                                coef    std err          z      P>|z|      [0.025      0.975]
+---------------------------------------------------------------------------------------------
+const                        -3.7710      0.087    -43.326      0.000      -3.942      -3.600
+test_group_binary            -0.4257      0.062     -6.855      0.000      -0.547      -0.304
+total_ads                    -0.0052      0.001     -8.233      0.000      -0.006      -0.004
+most_ads_hour                 0.0111      0.005      2.402      0.016       0.002       0.020
+ads_treatment_interaction     0.0162      0.001     22.445      0.000       0.015       0.018
+=============================================================================================
