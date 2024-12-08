@@ -195,8 +195,6 @@ if st.session_state["selected_data_type"] == "실험 데이터":
         change_perc = str(result['change_perc']) + '%'
         if result['change_coef'] >= 0:
             change_flag = '+'
-        else:
-            change_flag = '-'
         p_value = str(result['p_value'])
         if result['p_value'] <= 0.05:
             stats_sign = 'True'
@@ -214,8 +212,8 @@ if st.session_state["selected_data_type"] == "실험 데이터":
     if uploaded_file:
         if result_flag:
             col1, col2, col3 = st.columns(3)
-            col1.metric("처치 이전", f"{pre_treat}")
-            col2.metric("처치 이후", f"{post_treat}", f"{change_flag+change_perc}%")
+            col1.metric("처치 전", f"{pre_treat}")
+            col2.metric("처치 후", f"{post_treat}", f"{change_flag + change_perc}")
         else:
             st.warning("Please select variables next.")
     else:
@@ -261,7 +259,7 @@ if st.session_state["selected_data_type"] == "실험 데이터":
     st.header("Export Report")
     
     if st.button("Download PDF"):
-        st.success("PDF 리포트가 성공적으로 저장되었습니다.")
+        st.success("PDF가 성공적으로 저장되었습니다.")
     
 
 ###################################
