@@ -231,13 +231,27 @@ if st.session_state["selected_data_type"] == "실험 데이터":
     
     if uploaded_file:
         if result_flag:
-            st.write("#### Box Plot")
+            if data[outcome_column].dtype in [object, bool]:
+                if data[outcome_column].dtype == object:
+                    data[outcome_column] = data[outcome_column].map(lambda x: 1 if str(x).lower() == 'true' else 0)
+                else:
+                    data[outcome_column] = data[outcome_column].astype(int)
 
-            box_plot = alt.Chart(data).mark_boxplot(size=100).encode(
-                x=treat_column,
-                y=outcome_column
-            )
-            st.altair_chart(box_plot, use_container_width=True)
+                st.write("#### Bar Plot")
+                bar_plot = alt.Chart(data).mark_bar(size=100).encode(
+                    x=alt.X(f'{treat_column}:N'),
+                    y=alt.Y(f'mean({outcome_column}):Q'),
+                )
+                st.altair_chart(bar_plot, use_container_width=True)
+
+            else:
+                st.write("#### Box Plot")
+                
+                box_plot = alt.Chart(data).mark_boxplot(size=100).encode(
+                    x=treat_column,
+                    y=outcome_column
+                )
+                st.altair_chart(box_plot, use_container_width=True)
         else:
             st.warning("Please select variables next.")
     else:
