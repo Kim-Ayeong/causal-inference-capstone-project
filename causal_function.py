@@ -62,26 +62,31 @@ def ab_test (raw, x, y):
 #ab_test(raw, 'Group', 'Time Spent')
 
 
-# In[ ]:
+def did (raw, x, y, start_dt, end_dt, treat_dt):
+    
+    # test
+    res = {
+            'pre_treat': 305141,
+            'change_coef': round(8741.2, 2),
+            'post_treat': 313286,
+            'change_perc': round(8741.2/305141, 2),
+            'p_value': 0.01
+    }
+
+    return res
 
 
+def rd (raw, x, y, start_dt, end_dt, treat_dt):
+    
+    # test
+    res = {
+            'pre_treat': 310625,
+            'change_coef': round(5884, 2),
+            'post_treat': 299206,
+            'change_perc': round(5884/310625, 2),
+            'p_value': 0.01
+    }
 
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
+    return res
 
 
