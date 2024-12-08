@@ -79,6 +79,8 @@ change_coef = ''
 post_treat = ''
 change_perc = ''
 change_flag = ''
+p_value = ''
+stats_sign = ''
 
 ###################################
 # exp data section
@@ -195,6 +197,11 @@ if st.session_state["selected_data_type"] == "실험 데이터":
             change_flag = '+'
         else:
             change_flag = '-'
+        p_value = str(result['p_value'])
+        if result['p_value'] <= 0.05:
+            stats_sign = 'True'
+        else:
+            stats_sign = 'False'
     
     st.divider()
     ##############################################
@@ -239,7 +246,8 @@ if st.session_state["selected_data_type"] == "실험 데이터":
         if result_flag:
             st.write(f"""
             **{treat_column}**에 따른 **{outcome_column}**의 효과는 {change_flag + change_perc}로 분석되었습니다. \n
-            이 결과는 **{outcome_column}**에 대한 추가 분석을 거쳐 유의미한 통계적 근거로 활용될 수 있습니다.
+            이 때, p-value는 **{p_value}**로 유의수준 5% 내에서 통계적 유의성은 **{stats_sign}**입니다. \n
+            위 결과는 **{outcome_column}**에 대한 추가 분석을 거쳐 인과적 근거로 활용될 수 있습니다.
             """)
         else:
             st.warning("Please select variables next.")
