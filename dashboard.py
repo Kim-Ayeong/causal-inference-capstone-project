@@ -7,6 +7,7 @@ import pandas as pd
 import datetime
 import altair as alt
 from PIL import Image
+import causal_function as cf
 
 st.set_page_config(layout="wide")
 
@@ -20,9 +21,6 @@ if "uploaded_file" not in st.session_state:
 # Sidebar section
 ###################################
 
-# 타이틀
-
-#st.sidebar.title('Causal Inference Navigator')
 st.sidebar.markdown("""
 <h2 style="color: #4CAF50; font-size: 24px; font-weight: bold; border-bottom: 3px solid #4CAF50; padding-bottom: 5px;">
     Causal Inference Navigator
@@ -31,12 +29,14 @@ st.sidebar.markdown("""
 
 st.sidebar.header("| **About**")
 st.sidebar.markdown("""
-Causal Inference Navigator는 인과 추론 연구를 돕기 위한 도구입니다. 
-데이터 유형과 분석 모델을 선택하면, 연구 설계를 통해 결과를 도출합니다.
+Causal Inference Navigator는 누구나 쉽게 인과 추론을 할 수 있도록 설계된 도구입니다. \n
+데이터 업로드 후, 분석 모델 및 필요한 정보를 입력하면 인과 효과를 분석해 시각화합니다. \n
+이 도구는 복잡한 데이터로부터 인과적인 통찰을 얻고, 데이터 기반의 의사결정을 내릴 수 있도록 지원합니다.
 """)
 
 
 # 데이터 유형 선택
+st.sidebar.divider()
 
 st.markdown("""
     <style>
@@ -58,36 +58,39 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.sidebar.header("| **데이터 유형 선택**")
-st.sidebar.markdown("분석하실 데이터의 유형을 선택해주세요.")
+st.sidebar.header("| **Select Data Type**")
+st.sidebar.markdown("데이터 유형을 선택해주세요.")
 
-# 세션 유지 반영
+# 세션 반영
 if st.sidebar.button("실험 데이터", key="exp_data_button"):
     st.session_state["selected_data_type"] = "실험 데이터"
 
 if st.sidebar.button("관찰 데이터", key="obs_data_button"):
     st.session_state["selected_data_type"] = "관찰 데이터"
+    
+# 결과 초기값
+result_flag = False
 
-# 선택된 데이터 유형에 따라 조건부 콘텐츠 표시
+treat_column = ''
+outcome_column = ''
+#treat_date = ''
+pre_treat = ''
+change_coef = ''
+post_treat = ''
+change_perc = ''
+change_flag = ''
+
+###################################
+# exp data section
+###################################
 if st.session_state["selected_data_type"] == "실험 데이터":
-    st.title("실험 데이터 페이지")
-    st.write("여기에 실험 데이터 관련 콘텐츠를 표시합니다.")
-
-elif st.session_state["selected_data_type"] == "관찰 데이터":
-
-    # Section: Data ############################## 
-    st.header('Upload file')
-    #st.write("데이터 파일을 업로드하세요.")
     
+    st.header('Upload File')
     
-    uploaded_file = st.file_uploader("Upload your file here", type=["csv", "xlsx"])
-    #if uploaded_file:
-    #    st.success("파일이 성공적으로 업로드되었습니다.")
-    #    df = pd.read_csv(uploaded_file)  # Assuming it's a CSV for simplicity
-    #    st.dataframe(df.head())
-    
+    uploaded_file = st.file_uploader("", type=["csv", "xlsx"])
     if uploaded_file:
-        # 데이터 로드
+        st.success("파일이 성공적으로 업로드되었습니다.")
+        
         try:
             if uploaded_file.name.endswith('.csv'):
                 data = pd.read_csv(uploaded_file)
@@ -152,34 +155,206 @@ elif st.session_state["selected_data_type"] == "관찰 데이터":
                 ),
                 unsafe_allow_html=True,
             )
-    
-            # 두 섹션 사이 공간 추가
+
             st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
     
-            # Show Raw Data 섹션
-            with st.expander("Show Raw Data"):
-                st.subheader("Raw Data")
+            # Show Data 섹션
+            with st.expander("Show Data"):
                 st.dataframe(data)
+#     else:
+#         st.info("Please upload the data first.")
     
+    st.divider()
+    ##############################################
+    
+    st.header('Select Variables')
+    
+    st.subheader("1) Treatment, Outcome")
+    
+    if 'data' in locals() and data is not None:
+        treat_column = st.selectbox("처치(Treatment)에 해당하는 열을 선택하세요.", options=data.columns, key="treat_column")
+        outcome_column = st.selectbox("결과(Outcome)에 해당하는 열을 선택하세요.", options=data.columns, key="outcome_column")
+    
+        st.write(f"**처치(Treatment):** {treat_column}")
+        st.write(f"**결과(Outcome):** {outcome_column}")
+        
     else:
-        st.info("Please upload a file to see the dataset summary.")
+        st.warning("Please upload the data first.")
+        
+    if st.button("Submit"):
+        st.success("선택한 정보가 성공적으로 적용되었습니다.")
+        result_flag = True
+        
+        # function result
+        result = cf.ab_test(data, treat_column, outcome_column)
+        pre_treat = str(result['pre_treat'])
+        change_coef = str(result['change_coef'])
+        post_treat = str(result['post_treat'])
+        change_perc = str(result['change_perc']) + '%'
+        if result['change_coef'] >= 0:
+            change_flag = '+'
+        else:
+            change_flag = '-'
     
+    st.divider()
+    ##############################################
     
+    st.header('Results')
     
+    # 1. 숫자 섹션
+    st.subheader("1) Effect Summary")
+    
+    if uploaded_file:
+        if result_flag:
+            col1, col2, col3 = st.columns(3)
+            col1.metric("처치 이전", f"{pre_treat}")
+            col2.metric("처치 이후", f"{post_treat}", f"{change_flag+change_perc}%")
+        else:
+            st.warning("Please select variables next.")
+    else:
+        st.warning("Please upload the data first.")
+
+    
+    # 2. 그래프 섹션
+    st.subheader("2) Effect Visualization")
+    
+    if uploaded_file:
+        if result_flag:
+            st.write("#### Box Plot")
+
+            box_plot = alt.Chart(data).mark_boxplot(size=100).encode(
+                x=treat_column,
+                y=outcome_column
+            )
+            st.altair_chart(box_plot, use_container_width=True)
+        else:
+            st.warning("Please select variables next.")
+    else:
+        st.warning("Please upload the data first.")
+    
+    # 3. 서술형 요약
+    st.subheader("3) Narrative Summary")
+    
+    if uploaded_file:
+        if result_flag:
+            st.write(f"""
+            **{treat_column}**에 따른 **{outcome_column}**의 효과는 {change_flag + change_perc}로 분석되었습니다. \n
+            이 결과는 **{outcome_column}**에 대한 추가 분석을 거쳐 유의미한 통계적 근거로 활용될 수 있습니다.
+            """)
+        else:
+            st.warning("Please select variables next.")
+    else:
+        st.warning("Please upload the data first.")
+
+    st.divider()
+    ##############################################
+    
+    # PDF 리포트 저장 버튼
+    st.header("Export Report")
+    
+    if st.button("Download PDF"):
+        st.success("PDF 리포트가 성공적으로 저장되었습니다.")
+    
+
+###################################
+# obs data section
+###################################
+
+elif st.session_state["selected_data_type"] == "관찰 데이터":
+
+    st.header('Upload File')
+    
+    uploaded_file = st.file_uploader("", type=["csv", "xlsx"])
+    if uploaded_file:
+        st.success("파일이 성공적으로 업로드되었습니다.")
+        
+        try:
+            if uploaded_file.name.endswith('.csv'):
+                data = pd.read_csv(uploaded_file)
+            elif uploaded_file.name.endswith('.xlsx'):
+                data = pd.read_excel(uploaded_file)
+        except Exception as e:
+            st.error(f"Error loading file: {e}")
+            data = None
+    
+        if data is not None:
+            # About Dataset 섹션
+            with st.container():
+                st.markdown(
+                    """
+                    <div style="background-color:#f9f9f9; padding: 20px; border-radius: 8px; border: 1px solid #ddd;">
+                        <h4 style="color: #333;">About Dataset</h4>
+                        <ul style="line-height: 1.8; font-size: 14px;">
+                            <li><strong>Filename:</strong> {}</li>
+                            <li><strong>Size:</strong> {:.2f} MB</li>
+                            <li><strong>Observations:</strong> {} rows</li>
+                            <li><strong>Columns:</strong> {} columns</li>
+                        </ul>
+                    </div>
+                    """.format(
+                        uploaded_file.name,
+                        uploaded_file.size / (1024 * 1024),
+                        data.shape[0],
+                        data.shape[1],
+                    ),
+                    unsafe_allow_html=True,
+                )
+    
+            # Columns Overview 섹션
+            st.markdown(
+                """
+                <div style="background-color:#f1f1f1; padding: 20px; border-radius: 8px; border: 1px solid #ccc; margin-top: 20px; font-size: 13px;">
+                    <h5 style="color: #555;">Columns Overview</h5>
+                    <div style="display: flex; justify-content: space-between; text-align: center;">
+                        <div>
+                            <p style="color: #007bff; font-size: 12px; margin-bottom: 5px;">Numeric Columns</p>
+                            <p style="font-size: 18px; font-weight: bold;">{}</p>
+                        </div>
+                        <div>
+                            <p style="color: #007bff; font-size: 12px; margin-bottom: 5px;">Categorical Columns</p>
+                            <p style="font-size: 18px; font-weight: bold;">{}</p>
+                        </div>
+                        <div>
+                            <p style="color: #007bff; font-size: 12px; margin-bottom: 5px;">Boolean Columns</p>
+                            <p style="font-size: 18px; font-weight: bold;">{}</p>
+                        </div>
+                        <div>
+                            <p style="color: #007bff; font-size: 12px; margin-bottom: 5px;">Date/Time Columns</p>
+                            <p style="font-size: 18px; font-weight: bold;">{}</p>
+                        </div>
+                    </div>
+                </div>
+                """.format(
+                    data.select_dtypes(include=["number"]).shape[1],
+                    data.select_dtypes(include=["object"]).shape[1],
+                    data.select_dtypes(include=["bool"]).shape[1],
+                    data.select_dtypes(include=["datetime64"]).shape[1],
+                ),
+                unsafe_allow_html=True,
+            )
+
+            st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
+    
+            # Show Data 섹션
+            with st.expander("Show Data"):
+                st.dataframe(data)
+#     else:
+#         st.info("Please upload the data first.")
+    
+    st.divider()
     ###############################################
     
-    st.header('Model Selector')
+    st.header('Causal Model Selector')
     
     # 세션 상태 초기화
     if "show_recommendation" not in st.session_state:
         st.session_state.show_recommendation = False
     
     # 추천 모델 출력
-    def show_recommendation(method):
+    def show_recommendation(model):
         st.markdown(f"""
         <div style="border: 2px solid #4CAF50; padding: 10px; border-radius: 10px; background-color: #f9f9f9;">
-            <h3 style="color: #4CAF50;">추천 방법:</h3>
-            <p style="font-size: 16px;">{method}</p>
+            <p style="font-size: 16px;">{model}</p>
         </div>
         """, unsafe_allow_html=True)
     
@@ -187,116 +362,106 @@ elif st.session_state["selected_data_type"] == "관찰 데이터":
     def reset_recommendation():
         st.session_state.show_recommendation = False
     
-    # 첫 번째 질문
-    st.subheader("Flowchart for Causal Inference")
+    # flowchart
+    with st.expander("Flowchart for Causal Inference"):
+        st.markdown("<div style='height: 20px;'> flowchart image </div>", unsafe_allow_html=True)
     
-    # 연구 설계 여부
+    # process
     experimental_design = st.radio(
-        "준실험 연구 설계가 가능한가?", ["Yes", "No"], horizontal=True, on_change=reset_recommendation)
+        "준실험 연구 설계가 가능한가요?", ["Yes", "No"], horizontal=True, on_change=reset_recommendation)
     
     if experimental_design == "Yes":
         treatment_control = st.radio(
-            "처치(Treatment)와 통제(Control) 그룹이 관찰되는가?", ["Yes", "No"], horizontal=True, on_change=reset_recommendation)
+            "처치(Treatment), 통제(Control) 그룹을 정의할 수 있나요?", ["Yes", "No"], horizontal=True, on_change=reset_recommendation)
     
         if treatment_control == "Yes":
             panel_data = st.radio(
-                "패널 데이터가 존재하는가?", ["Yes", "No"], horizontal=True, on_change=reset_recommendation)
+                "같은 대상이 시간별로 기록된 패널 데이터인가요?", ["Yes", "No"], horizontal=True, on_change=reset_recommendation)
     
             if panel_data == "Yes":
                 parallel_trends = st.radio(
-                    "평행 추세 가정이 성립하는가?", ["Yes", "No"], horizontal=True, on_change=reset_recommendation)
+                    "평행 추세 가정이 성립하나요?", ["Yes", "No"], horizontal=True, on_change=reset_recommendation)
                 if parallel_trends == "Yes":
                     recommendation = "이중차분법 (Difference-in-Differences, DID)"
                 else:
-                    recommendation = "DID + Matching 또는 합성 통제"
+                    recommendation = "이중차분법 (Difference-in-Differences, DID) + 매칭 (Matching) 또는 합성통제 (Synthetic Control)"
             else:
                 recommendation = "회귀불연속 (Regression Discontinuity)"
         else:
             time_series = st.radio(
-                "처치 전후의 시계열 데이터가 존재하는가?", ["Yes", "No"], horizontal=True, on_change=reset_recommendation)
+                "처치 전후의 시계열 데이터가 존재하나요?", ["Yes", "No"], horizontal=True, on_change=reset_recommendation)
             if time_series == "Yes":
-                recommendation = "시계열 분석 (Interrupted Time-Series Analysis)"
+                recommendation = "단절 시계열분석 (Interrupted Time Series Analysis)"
             else:
                 recommendation = "연구 설계 불가"
     else:
         instrumental_variable = st.radio(
-            "도구변수가 존재하는가?", ["Yes", "No"], horizontal=True, on_change=reset_recommendation)
+            "도구변수가 존재하나요?", ["Yes", "No"], horizontal=True, on_change=reset_recommendation)
     
         if instrumental_variable == "Yes":
-            recommendation = "Two-Stage Least Squares 또는 Selection Bias Correction"
+            recommendation = "2단계 최소제곱법 (2-Stage Least Squares)"
         else:
             setting_clear = st.radio(
-                "연구 설정이 명확하고 충분한 샘플이 존재하는가?", ["Yes", "No"], horizontal=True, on_change=reset_recommendation)
+                "처치 및 결과가 명확하고, 각 그룹에 최소 30개의 데이터가 있나요?", ["Yes", "No"], horizontal=True, on_change=reset_recommendation)
             if setting_clear == "Yes":
-                recommendation = "Matching"
+                recommendation = "매칭 (Matching)"
             else:
-                recommendation = "Regression"
+                recommendation = "회귀분석 (Regression)"
     
-    # 추천 분석 방법 보기 버튼을 누르면 추천이 보이도록 설정
-    if st.button("추천 분석방법 보기"):
+    if st.button("추천 모델 확인"):
         st.session_state.show_recommendation = True
     
-    # 추천 결과가 본문에 표시되도록 설정
+    # 추천 결과 세션
     if st.session_state.show_recommendation:
         show_recommendation(recommendation)
     
-    
-    
+    st.divider()
     ##############################################
     
-    st.header('Analysis')
+    st.header('Select Variables')
     
-    # 데이터 선택 섹션
-    st.subheader("1. Choose Variables")
+    st.subheader("1) Treatment, Outcome")
     
-    # 데이터프레임이 이미 업로드된 상태에서 사용
     if 'data' in locals() and data is not None:
-        # 칼럼 이름을 선택하도록 설정
-        treat_column = st.selectbox("처치 데이터에 해당하는 열 이름을 선택하세요", options=data.columns, key="treat_column")
-        outcome_column = st.selectbox("결과 데이터에 해당하는 열 이름을 선택하세요", options=data.columns, key="outcome_column")
+        treat_column = st.selectbox("처치(Treatment)에 해당하는 열을 선택하세요.", options=data.columns, key="treat_column")
+        outcome_column = st.selectbox("결과(Outcome)에 해당하는 열을 선택하세요.", options=data.columns, key="outcome_column")
     
-        # 선택한 칼럼 표시
-        st.write(f"**처치(열):** {treat_column}")
-        st.write(f"**결과(열):** {outcome_column}")
+        st.write(f"**처치(Treatment):** {treat_column}")
+        st.write(f"**결과(Outcome):** {outcome_column}")
     else:
-        st.warning("데이터가 로드되지 않았습니다. 먼저 파일을 업로드하세요.")
+        st.warning("Please upload the data first")
+        
+#     st.markdown("<hr style='border:1px solid #ddd;'>", unsafe_allow_html=True)
     
-    # 섹션 간 간격 추가
-    st.markdown("<hr style='border:1px solid #ddd;'>", unsafe_allow_html=True)
+    st.subheader("2) Date")
     
-    
-    # 기간 선택 섹션
-    st.subheader("2. Setup Date")
-    
-    # 데이터 업로드 확인
     if 'data' not in locals() or data is None:
-        st.warning("데이터가 로드되지 않았습니다. 먼저 파일을 업로드하세요.")
+        st.warning("Please upload the data first")
     else:
-        # 분석 기간 선택
-        st.write("분석을 희망하는 기간을 선택해주세요")
         analysis_period = st.date_input(
-            "기간 선택:",
-            value=(data['일자'].min(), data['일자'].max()),  # 데이터의 최소~최대 기간으로 초기값 설정
-            min_value=data['일자'].min(),  # 데이터의 최소 날짜
-            max_value=data['일자'].max(),  # 데이터의 최대 날짜
-            format="MM.DD.YYYY",
+            "분석에 사용할 기간을 선택해주세요.",
+            value=(data['일자'].min(), data['일자'].max()),  # 최소~최대 기간
+            min_value=data['일자'].min(),  # 최소 날짜
+            max_value=data['일자'].max(),  # 최대 날짜
+            format="YYYY/MM/DD"
         )
     
-        # 처치 발생 시점 선택
         treatment_date = st.date_input(
-            "처치가 발생한 시점을 선택해주세요",
-            value=data['일자'].max(),  # 기본값은 데이터의 최대 날짜
+            "처치(Treatment)가 발생한 시점을 선택해주세요.",
+            value=data['일자'].max(),  # 최대 날짜
             min_value=data['일자'].min(),
             max_value=data['일자'].max(),
+            format="YYYY/MM/DD"
         )
     
-        # 제출 버튼
         if st.button("Submit"):
-            # 선택된 기간에 맞춰 데이터 필터링
+            st.success("선택한 정보가 성공적으로 적용되었습니다.")
             filtered_data = data[
                 (data['일자'] >= pd.to_datetime(analysis_period[0])) &
                 (data['일자'] <= pd.to_datetime(analysis_period[1]))
             ]
+    
+    
     
             # 일별 차트 생성
             df_daily = (
@@ -392,31 +557,38 @@ elif st.session_state["selected_data_type"] == "관찰 데이터":
         if st.button("추천 분석방법 적용하기"):
             st.write("추천 분석방법 적용하기 버튼이 클릭되었습니다.")
             run_did_analysis(st.session_state["uploaded_file"])
-    else:
-        st.warning("파일을 업로드해주세요.")
+#     else:
+#         st.info("Please upload the data first.")
     
         
-    
-    # Result 섹션
+    st.divider()
+    ##############################################
     
     st.header('Results')
     
+    # 1. 숫자 섹션
+    st.subheader("1) Effect Summary")
+    treat_col = 'treat'
+    outcome_col = 'outcome'
+    treat_date = '2024/1/27'
+    pre_treat = 307524
+    change_coef = 8700
     
-    # 1. 효과를 직관적으로 숫자로 보여주는 섹션
-    st.subheader("Effect Summary")
+    if change_coef >= 0:
+        change_flag = '+'
+    else:
+        change_flag = '-'
+    
     col1, col2, col3 = st.columns(3)
-    col1.metric("처치 이전", "00.0%")
-    col2.metric("처치 이후", "00.0%", "+0.0%")
+    col1.metric("처치 이전", f"{pre_treat}")
+    col2.metric("처치 이후", f"{pre_treat + change_coef}", f"{change_flag, round(change_coef / pre_treat * 100, 3)}%")
     
-    # 섹션 간 간격 추가
-    st.markdown("<hr style='border:1px solid #ddd;'>", unsafe_allow_html=True)
-    
-    # 2. 그래프 섹션 (선 그래프, BOX PLOT, 회귀)
-    st.subheader("Visual Analysis")
+    # 2. 그래프 섹션
+    st.subheader("2) Effect Visualization")
     
     ###예시 그래프
     # 선 그래프
-    st.write("### Line Chart")
+    st.write("#### Line Chart")
     line_chart_data = pd.DataFrame({
         "날짜": pd.date_range(start="2023-01-01", periods=100),
         "효과": [i * 0.1 for i in range(100)]
@@ -428,7 +600,7 @@ elif st.session_state["selected_data_type"] == "관찰 데이터":
     st.altair_chart(line_chart, use_container_width=True)
     
     # BOX PLOT
-    st.write("### Box Plot")
+    st.write("#### Box Plot")
     box_plot_data = pd.DataFrame({
         "그룹": ["처치", "통제"] * 50,
         "값": [i * 0.1 + (0 if i % 2 == 0 else 5) for i in range(100)]
@@ -439,30 +611,29 @@ elif st.session_state["selected_data_type"] == "관찰 데이터":
     )
     st.altair_chart(box_plot, use_container_width=True)
     
-    # 섹션 간 간격 추가
-    st.markdown("<hr style='border:1px solid #ddd;'>", unsafe_allow_html=True)
+    #st.markdown("<hr style='border:1px solid #ddd;'>", unsafe_allow_html=True)
     
     # 3. 결과를 서술형으로 문장 작성
-    st.subheader("Narrative Summary")
-    result_variable = "효과"  # 예시 변수
-    change_percentage = "+0.0%"  # 예시 값
+    st.subheader("3) Narrative Summary")
+    
     st.write(f"""
-    처치 이후 **{result_variable}**에 대한 변화는 **{change_percentage}**로 분석되었습니다.
-    이 결과는 처치가 효과적임을 시사하며, 추가적인 분석에서 유의미한 결과가 도출될 수 있습니다.
+    **{treat_date}** 부터 발생된 **{treat_col}**의 효과를 분석한 결과, **{outcome_col}**에 대한 변화는 **{change_flag}{round(change_coef / pre_treat * 100, 3)}**%로 분석되었습니다. \n
+    이 결과는 {outcome_col}에 대한 추가 분석을 거쳐 유의미한 통계적 근거로 활용될 수 있습니다.
     """)
     
-    # 섹션 간 간격 추가
-    st.markdown("<hr style='border:1px solid #ddd;'>", unsafe_allow_html=True)
+#     # 섹션 간 간격 추가
+#     st.markdown("<hr style='border:1px solid #ddd;'>", unsafe_allow_html=True)
+    st.divider()
+    ##############################################
     
-    # 4. PDF 리포트 저장 버튼
-    st.subheader("Export Report")
+    # PDF 리포트 저장 버튼
+    st.header("Export Report")
+    
     if st.button("Download PDF"):
         st.success("PDF 리포트가 성공적으로 저장되었습니다.")
-        # PDF 생성 코드는 필요시 추가 가능
     
     
     ######################
-    import streamlit as st
     import matplotlib.pyplot as plt
     from io import BytesIO
     from reportlab.pdfgen import canvas
