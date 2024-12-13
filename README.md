@@ -4,22 +4,29 @@
 - data
 1. https://www.kaggle.com/datasets/adarsh0806/ab-testing-practice
 2. https://www.kaggle.com/datasets/faviovaz/marketing-ab-testing/data
-3. https://www.kaggle.com/datasets/mursideyarkin/mobile-games-ab-testing-cookie-cats
 - model: RCT, PSM 등
 
 ## Observational Data
 - data: 2022~24년 대중교통 이용량(기후동행카드)
 - model: DID, RD 등
 
-## Result of Causal Model
-- Numpy A/B testing ---> 결과: 대조 그룹(2,519명) 대비 처치 그룹(2,481명)에서 평균 time spent가 1.6 높으나 통계적으로 유의미하지 않음
-- Marketing A/B testing ---> 결과: 대조 그룹(23,500명)의 2배로 처치 그룹(564,000명) 리샘플링 후, most_ads_day, most_ads_hour PSM 매칭으로 converted 차이 분석, ATE는 0.006로 통계적으로 유의미함
-- 기후동행카드, DID ---> 결과: 2022/11/1~2024/10/31 동안 2024/1/27 기준, 부산 대비 서울의 시군구 대중교통 이용량 차이 분석, 전체 기간의 ATE는 8,741건
-- 기후동행카드, RD ---> 결과: 2022/11/1~2024/10/31 동안 2024/1/27 기준, 서울에서의 시군구 평균 대중교통 이용량 차이 분석, 일별 ATE는 1,318건
-
 ## Dashboard
-![image](https://github.com/user-attachments/assets/82eaf147-0bb6-42be-b212-834e79bf9473)
-![image](https://github.com/user-attachments/assets/d552cb5e-1e59-464d-a3e6-76f05427af08)
-![image](https://github.com/user-attachments/assets/67cc9b41-5038-4374-9966-9866a3b2318d)
-![image](https://github.com/user-attachments/assets/1a6c0929-ee09-4fff-bf22-6b9e94a3c1e9)
+### Experimental Data
+#### Numpy A/B test
+![실험1_1](https://github.com/user-attachments/assets/ac6094e8-52fe-4382-a06e-3c3e1e1969d7)
+![실험1_2](https://github.com/user-attachments/assets/99927003-b595-4734-8014-df66d55abdef)
+![실험1_3](https://github.com/user-attachments/assets/99267e51-4816-4b98-ba9a-2f56958e7d8d)
+
+#### Marketing A/B test
+![실험2_1](https://github.com/user-attachments/assets/9f82293d-b1df-4499-b569-f44e99b28da9)
+![실험2_2](https://github.com/user-attachments/assets/610610d8-2d12-42ab-a953-1417c87d1a7b)
+![실험2_3](https://github.com/user-attachments/assets/6581706e-345c-4fae-ba13-2ecde897ceaa)
+
+### 기후동행카드 Data
+![관찰1](https://github.com/user-attachments/assets/0c3dadc2-35b8-456b-ab06-e8a767d325b6)
+![관찰2](https://github.com/user-attachments/assets/3e479dbe-fed0-46f8-a7ec-b02f4fc21315)
+![관찰3](https://github.com/user-attachments/assets/3055434a-67ab-4074-916d-677777c6d2d5)
+![관찰4](https://github.com/user-attachments/assets/b36cd648-172e-456e-97f1-aa81fda38b81)
+![관찰5](https://github.com/user-attachments/assets/eb5a5640-1dcd-4902-8f13-d4c09520b678)
+
 
