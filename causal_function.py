@@ -48,7 +48,7 @@ def ab_test (raw, x, y):
             'pre_treat': tab.iloc[0]['mean'],
             'change_coef': round(tab.iloc[1]['mean'] - tab.iloc[0]['mean'], 2),
             'post_treat': tab.iloc[1]['mean'],
-            'change_perc': round((tab.iloc[1]['mean'] - tab.iloc[0]['mean']) / tab.iloc[0]['mean'], 2),
+            'change_perc': round((tab.iloc[1]['mean'] - tab.iloc[0]['mean']) / tab.iloc[0]['mean'] * 100, 2),
             't_stat': t_stat.round(4),
             'p_value': p_value.round(4)
     }
@@ -69,7 +69,7 @@ def did (raw, x, y, start_dt, end_dt, treat_dt):
             'pre_treat': 305141,
             'change_coef': round(8741.2, 2),
             'post_treat': 313286,
-            'change_perc': round(8741.2/305141, 2),
+            'change_perc': round(8741.2/305141*100, 2),
             'p_value': 0.01
     }
 
@@ -83,7 +83,7 @@ def rd (raw, x, y, start_dt, end_dt, treat_dt):
             'pre_treat': 310625,
             'change_coef': round(5884, 2),
             'post_treat': 299206,
-            'change_perc': round(5884/310625, 2),
+            'change_perc': round(5884/310625*100, 2),
             'p_value': 0.01
     }
 
