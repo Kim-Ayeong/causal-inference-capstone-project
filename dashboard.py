@@ -8,6 +8,7 @@ import datetime
 import altair as alt
 from PIL import Image
 import causal_function as cf
+from fpdf import FPDF
 
 st.set_page_config(layout="wide")
 
@@ -278,9 +279,46 @@ if st.session_state["selected_data_type"] == "실험 데이터":
     # PDF 리포트 저장 버튼
     st.header("Export Report")
     
-    if st.button("Download PDF"):
-        st.success("PDF가 성공적으로 저장되었습니다.")
+    def generate_pdf_narrative(treat_column, outcome_column, change_flag, change_perc, p_value, stats_sign):
+        """Generate a PDF containing the narrative summary."""
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Arial", size=12)
+
+        # 한글 폰트 추가 (맑은 고딕 또는 나눔고딕 사용)
+#        font_path = "/path/to/your/font.ttf"  # 한글 폰트 파일 경로 (예: NanumGothic.ttf)
+#        pdf.add_font("NanumGothic", fname=font_path, uni=True)
+#        pdf.set_font("NanumGothic", size=12)
+        
+        # Add narrative summary content
+        pdf.cell(200, 10, txt="Narrative Summary", ln=True, align='C')
+        pdf.ln(10)
+        narrative_text = (
+            f"The effect of **{treat_column}** on **{outcome_column}** was analyzed as {change_flag + change_perc}.\n"
+            f"The p-value was found to be **{p_value}**, and it was statistically significant at the 5% level (**{stats_sign}**).\n"
+            f"This result can be used as causal evidence for further analysis of **{outcome_column}**."
+        )
+        pdf.multi_cell(0, 10, narrative_text)
+        
+        # Save the PDF file
+        file_path = "narrative_summary.pdf"
+        pdf.output(file_path)
+        return file_path
+
+
     
+    if st.button("Download PDF"):
+        pdf_file_path = generate_pdf_narrative(treat_column, outcome_column, change_flag, change_perc, p_value, stats_sign)
+        st.success("PDF가 성공적으로 저장되었습니다.")
+
+        # 바로 다운로드 제공
+        with open(pdf_file_path, "rb") as pdf_file:
+            st.download_button(
+                label="Click here to download the PDF",
+                data=pdf_file,
+                file_name="narrative_summary.pdf",
+                mime="application/pdf"
+            )
 
 ###################################
 # obs data section
@@ -629,9 +667,39 @@ elif st.session_state["selected_data_type"] == "관찰 데이터":
     st.header("Export Report")
     
     if st.button("Download PDF"):
-        st.success("PDF 리포트가 성공적으로 저장되었습니다.")
+        st.success("PDF 리포트가 성공적으로 저장되었습니다.")    
+
+
+    def generate_pdf():
+        """Generate an example pdf file and save it to example.pdf"""
+        from fpdf import FPDF
+    
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Arial", size=12)
+        # Add content
+        pdf.cell(200, 10, txt="Effect Summary", ln=True, align='C')
+        pdf.ln(10)
+#        pdf.cell(200, 10, txt=f"처치 전: {pre_treat}", ln=True)
+#        pdf.cell(200, 10, txt=f"처치 후: {post_treat}", ln=True)
+#        pdf.cell(200, 10, txt=f"변화율: {change_flag + change_perc}%", ln=True)
+        pdf.ln(10)
+#        pdf.cell(200, 10, txt=f"p-value: {p_value}", ln=True)
+#        pdf.cell(200, 10, txt=f"통계적 유의성: {stats_sign}", ln=True)
+        pdf.ln(10)
+        pdf.cell(200, 10, txt="위 결과는 목적통행량에 대한 추가 분석을 거쳐 인과적 근거로 활용될 수 있습니다.", ln=True)     
+        pdf.output("example.pdf")
     
     
+    if st.button("Generate PDF"):
+        generate_pdf()
+        st.success("Generated example.pdf!")
+    
+    with open("example.pdf", "rb") as f:
+        st.download_button("Download pdf", f, "example.pdf")
+    
+
+
     ######################
 #     import matplotlib.pyplot as plt
 #     from io import BytesIO
