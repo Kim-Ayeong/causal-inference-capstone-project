@@ -277,48 +277,48 @@ if st.session_state["selected_data_type"] == "실험 데이터":
     ##############################################
     
     # PDF 리포트 저장 버튼
-    st.header("Export Report")
+#     st.header("Export Report")
     
-    def generate_pdf_narrative(treat_column, outcome_column, change_flag, change_perc, p_value, stats_sign):
-        """Generate a PDF containing the narrative summary."""
-        pdf = FPDF()
-        pdf.add_page()
-        pdf.set_font("Arial", size=12)
+#     def generate_pdf_narrative(treat_column, outcome_column, change_flag, change_perc, p_value, stats_sign):
+#         """Generate a PDF containing the narrative summary."""
+#         pdf = FPDF()
+#         pdf.add_page()
+#         pdf.set_font("Arial", size=12)
 
-        # 한글 폰트 추가 (맑은 고딕 또는 나눔고딕 사용)
-#        font_path = "/path/to/your/font.ttf"  # 한글 폰트 파일 경로 (예: NanumGothic.ttf)
-#        pdf.add_font("NanumGothic", fname=font_path, uni=True)
-#        pdf.set_font("NanumGothic", size=12)
+#         # 한글 폰트 추가 (맑은 고딕 또는 나눔고딕 사용)
+# #        font_path = "/path/to/your/font.ttf"  # 한글 폰트 파일 경로 (예: NanumGothic.ttf)
+# #        pdf.add_font("NanumGothic", fname=font_path, uni=True)
+# #        pdf.set_font("NanumGothic", size=12)
         
-        # Add narrative summary content
-        pdf.cell(200, 10, txt="Narrative Summary", ln=True, align='C')
-        pdf.ln(10)
-        narrative_text = (
-            f"The effect of **{treat_column}** on **{outcome_column}** was analyzed as {change_flag + change_perc}.\n"
-            f"The p-value was found to be **{p_value}**, and it was statistically significant at the 5% level (**{stats_sign}**).\n"
-            f"This result can be used as causal evidence for further analysis of **{outcome_column}**."
-        )
-        pdf.multi_cell(0, 10, narrative_text)
+#         # Add narrative summary content
+#         pdf.cell(200, 10, txt="Narrative Summary", ln=True, align='C')
+#         pdf.ln(10)
+#         narrative_text = (
+#             f"The effect of **{treat_column}** on **{outcome_column}** was analyzed as {change_flag + change_perc}.\n"
+#             f"The p-value was found to be **{p_value}**, and it was statistically significant at the 5% level (**{stats_sign}**).\n"
+#             f"This result can be used as causal evidence for further analysis of **{outcome_column}**."
+#         )
+#         pdf.multi_cell(0, 10, narrative_text)
         
-        # Save the PDF file
-        file_path = "narrative_summary.pdf"
-        pdf.output(file_path)
-        return file_path
+#         # Save the PDF file
+#         file_path = "narrative_summary.pdf"
+#         pdf.output(file_path)
+#         return file_path
 
 
     
-    if st.button("Download PDF"):
-        pdf_file_path = generate_pdf_narrative(treat_column, outcome_column, change_flag, change_perc, p_value, stats_sign)
-        st.success("PDF가 성공적으로 저장되었습니다.")
+#     if st.button("Download PDF"):
+#         pdf_file_path = generate_pdf_narrative(treat_column, outcome_column, change_flag, change_perc, p_value, stats_sign)
+#         st.success("PDF가 성공적으로 저장되었습니다.")
 
-        # 바로 다운로드 제공
-        with open(pdf_file_path, "rb") as pdf_file:
-            st.download_button(
-                label="Click here to download the PDF",
-                data=pdf_file,
-                file_name="narrative_summary.pdf",
-                mime="application/pdf"
-            )
+#         # 바로 다운로드 제공
+#         with open(pdf_file_path, "rb") as pdf_file:
+#             st.download_button(
+#                 label="Click here to download the PDF",
+#                 data=pdf_file,
+#                 file_name="narrative_summary.pdf",
+#                 mime="application/pdf"
+#             )
 
 ###################################
 # obs data section
@@ -427,8 +427,9 @@ elif st.session_state["selected_data_type"] == "관찰 데이터":
         st.session_state.show_recommendation = False
     
     # flowchart
-    with st.expander("Flowchart for Causal Inference"):
-        st.markdown("<div style='height: 20px;'> ~ flowchart image ~ </div>", unsafe_allow_html=True)
+    with st.expander("Causal Inference Flowchart"):
+        flowchart_image = Image.open('./data/flowchart_image.jpg')
+        st.image(flowchart_image, caption='', use_column_width=True)
     
     # process
     experimental_design = st.radio(
@@ -494,7 +495,6 @@ elif st.session_state["selected_data_type"] == "관찰 데이터":
 #             run_did_analysis(st.session_state["uploaded_file"])
 #     else:
 #         st.info("Please upload the data first.")
-
     
     st.divider()
     ##############################################
@@ -513,7 +513,7 @@ elif st.session_state["selected_data_type"] == "관찰 데이터":
         st.warning("Please upload the data first.")
         
 #     st.markdown("<hr style='border:1px solid #ddd;'>", unsafe_allow_html=True)
-    
+
     st.subheader("2) Date")
     
     if 'data' not in locals() or data is None:
@@ -568,7 +568,6 @@ elif st.session_state["selected_data_type"] == "관찰 데이터":
         else:
             stats_sign = 'False'
 
-        
     st.divider()
     ##############################################
     
@@ -593,28 +592,6 @@ elif st.session_state["selected_data_type"] == "관찰 데이터":
     
     if uploaded_file:
         if result_flag:
-
-                #     # 주별 차트 생성
-                #     filtered_data['주차'] = filtered_data['일자'].dt.strftime('%Y%U')  # 주차 계산
-                #     df_weekly = (
-                #         filtered_data.groupby(['주차', '시도'])['인구당 목적통행량']
-                #         .mean()
-                #         .reset_index()
-                #     )
-                #     weekly_chart = alt.Chart(df_weekly, title='Weekly Chart').mark_line().encode(
-                #         x='주차:O',
-                #         y='인구당 목적통행량',
-                #         color='시도'
-                #     )
-                #     treatment_week = alt.Chart(pd.DataFrame({'주차': [treatment_date.strftime('%Y%U')]})).mark_rule(
-                #         color='black', strokeWidth=3, strokeDash=[2, 2]
-                #     ).encode(x='주차:O')
-                #     weekly_combined = (weekly_chart + treatment_week).properties(width=1000, height=300)
-
-                #     # 차트 출력
-                #     st.altair_chart(weekly_combined, use_container_width=True)
-            
-            # 선 그래프
             st.write("#### Line Chart")
             line_chart = alt.Chart(data).mark_line().encode(
                 x = date_column,
@@ -627,7 +604,6 @@ elif st.session_state["selected_data_type"] == "관찰 데이터":
             
             combined_chart = line_chart + treatment_line
             st.altair_chart(combined_chart, use_container_width=True)
-            
             
             st.write("#### Box Plot")
             box_plot = alt.Chart(data).mark_boxplot(size=100).encode(
@@ -657,98 +633,8 @@ elif st.session_state["selected_data_type"] == "관찰 데이터":
             st.warning("Please select variables next.")
     else:
         st.warning("Please upload the data first.")
-    
-#     # 섹션 간 간격 추가
-#     st.markdown("<hr style='border:1px solid #ddd;'>", unsafe_allow_html=True)
+
     st.divider()
     ##############################################
     
-    # PDF 리포트 저장 버튼
-    st.header("Export Report")
-    
-    if st.button("Download PDF"):
-        st.success("PDF 리포트가 성공적으로 저장되었습니다.")    
-
-
-    def generate_pdf():
-        """Generate an example pdf file and save it to example.pdf"""
-        from fpdf import FPDF
-    
-        pdf = FPDF()
-        pdf.add_page()
-        pdf.set_font("Arial", size=12)
-        # Add content
-        pdf.cell(200, 10, txt="Effect Summary", ln=True, align='C')
-        pdf.ln(10)
-#        pdf.cell(200, 10, txt=f"처치 전: {pre_treat}", ln=True)
-#        pdf.cell(200, 10, txt=f"처치 후: {post_treat}", ln=True)
-#        pdf.cell(200, 10, txt=f"변화율: {change_flag + change_perc}%", ln=True)
-        pdf.ln(10)
-#        pdf.cell(200, 10, txt=f"p-value: {p_value}", ln=True)
-#        pdf.cell(200, 10, txt=f"통계적 유의성: {stats_sign}", ln=True)
-        pdf.ln(10)
-        pdf.cell(200, 10, txt="위 결과는 목적통행량에 대한 추가 분석을 거쳐 인과적 근거로 활용될 수 있습니다.", ln=True)     
-        pdf.output("example.pdf")
-    
-    
-    if st.button("Generate PDF"):
-        generate_pdf()
-        st.success("Generated example.pdf!")
-    
-    with open("example.pdf", "rb") as f:
-        st.download_button("Download pdf", f, "example.pdf")
-    
-
-
-    ######################
-#     import matplotlib.pyplot as plt
-#     from io import BytesIO
-#     from reportlab.pdfgen import canvas
-    
-#     # 예시 차트 생성
-#     def create_chart():
-#         fig, ax = plt.subplots()
-#         ax.plot([1, 2, 3, 4], [10, 20, 25, 30])
-#         ax.set_title("Line Chart Example")
-#         return fig
-    
-#     # PDF 생성 함수
-#     def create_pdf_with_results(fig, results_text):
-#         buf = BytesIO()
-#         c = canvas.Canvas(buf)
-        
-#         # 텍스트 삽입
-#         c.setFont("Helvetica-Bold", 16)
-#         c.drawString(100, 750, "Results Summary")
-        
-#         # Effect Summary (예시)
-#         c.setFont("Helvetica", 12)
-#         c.drawString(100, 730, "Effect Summary")
-#         c.drawString(100, 710, f"처치 이전: {results_text['before']}")
-#         c.drawString(100, 690, f"처치 이후: {results_text['after']}")
-#         c.drawString(100, 670, f"변화: {results_text['change']}")
-        
-#         # 차트를 이미지로 저장하고 PDF에 삽입
-#         fig.savefig("/mnt/data/temp_chart.png")
-#         c.drawImage("/mnt/data/temp_chart.png", 100, 400, width=400, height=300)
-        
-#         c.save()
-#         buf.seek(0)
-#         return buf
-    
-#     # 스트림릿 대시보드
-#     st.subheader("Export Results as PDF")
-    
-#     results_text = {
-#         'before': '00.0%',
-#         'after': '00.0%',
-#         'change': '+0.0%'
-#     }
-    
-#     if st.button("Download PDF"):
-#         fig = create_chart()  # 차트 생성
-#         pdf_buf = create_pdf_with_results(fig, results_text)  # PDF 생성
-#         st.download_button("Download PDF Report", pdf_buf, "results_report.pdf", mime="application/pdf")
-#         st.success("PDF 리포트가 성공적으로 저장되었습니다.")
-
 
