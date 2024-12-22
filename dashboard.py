@@ -27,7 +27,7 @@ def get_image_base64(image_path):
     with open(image_path, "rb") as img_file:
         return base64.b64encode(img_file.read()).decode()
 
-image_base64 = get_image_base64('/Users/som/Documents/github/causal-inference-capstone-project/other/lgcns_korea_logo_transparent.png')
+image_base64 = get_image_base64('./other/lgcns_korea_logo_transparent.png')
 
 st.sidebar.markdown(
     f"""
