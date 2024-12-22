@@ -9,6 +9,7 @@ import altair as alt
 from PIL import Image
 import causal_function as cf
 from fpdf import FPDF
+import base64
 
 st.set_page_config(layout="wide")
 
@@ -22,13 +23,26 @@ if "uploaded_file" not in st.session_state:
 # Sidebar section
 ###################################
 
+def get_image_base64(image_path):
+    with open(image_path, "rb") as img_file:
+        return base64.b64encode(img_file.read()).decode()
+
+image_base64 = get_image_base64('/Users/som/Documents/github/causal-inference-capstone-project/other/lgcns_korea_logo_transparent.png')
+
+st.sidebar.markdown(
+    f"""
+    <img src="data:image/png;base64,{image_base64}" style="width:100%;">
+    """,
+    unsafe_allow_html=True
+)
+
 st.sidebar.markdown("""
-<h2 style="color: #4CAF50; font-size: 24px; font-weight: bold; border-bottom: 3px solid #4CAF50; padding-bottom: 5px;">
+<h2 style="color: #D2003B; font-size: 24px; font-weight: bold; border-bottom: 3px solid #D2003B; padding-bottom: 5px; margin-bottom: 15px;">
     Causal Inference Navigator
 </h2>
 """, unsafe_allow_html=True)
 
-st.sidebar.header("| **About**")
+#st.sidebar.header("| **About**")
 st.sidebar.markdown("""
 Causal Inference Navigator는 누구나 쉽게 인과 추론을 할 수 있도록 설계된 도구입니다. \n
 데이터 업로드 후, 분석 모델 및 필요한 정보를 입력하면 인과 효과를 분석해 시각화합니다. \n
@@ -48,12 +62,12 @@ st.markdown("""
         font-size: 18px;
         padding: 10px;
         border-radius: 10px;
-        background-color: #28a745;
+        background-color: #D2003B;
         color: white;
         border: none;
     }
     .stButton > button:hover {
-        background-color: #218838;
+        background-color: #D2003B;
         color: white;
     }
     </style>
@@ -145,19 +159,19 @@ if st.session_state["selected_data_type"] == "실험 데이터":
                     <h5 style="color: #555;">Columns Overview</h5>
                     <div style="display: flex; justify-content: space-between; text-align: center;">
                         <div>
-                            <p style="color: #007bff; font-size: 12px; margin-bottom: 5px;">Numeric Columns</p>
+                            <p style="color: #D2003B; font-size: 12px; margin-bottom: 5px;">Numeric Columns</p>
                             <p style="font-size: 18px; font-weight: bold;">{}</p>
                         </div>
                         <div>
-                            <p style="color: #007bff; font-size: 12px; margin-bottom: 5px;">Categorical Columns</p>
+                            <p style="color: #D2003B; font-size: 12px; margin-bottom: 5px;">Categorical Columns</p>
                             <p style="font-size: 18px; font-weight: bold;">{}</p>
                         </div>
                         <div>
-                            <p style="color: #007bff; font-size: 12px; margin-bottom: 5px;">Boolean Columns</p>
+                            <p style="color: #D2003B; font-size: 12px; margin-bottom: 5px;">Boolean Columns</p>
                             <p style="font-size: 18px; font-weight: bold;">{}</p>
                         </div>
                         <div>
-                            <p style="color: #007bff; font-size: 12px; margin-bottom: 5px;">Date/Time Columns</p>
+                            <p style="color: #D2003B; font-size: 12px; margin-bottom: 5px;">Date/Time Columns</p>
                             <p style="font-size: 18px; font-weight: bold;">{}</p>
                         </div>
                     </div>
@@ -379,19 +393,19 @@ elif st.session_state["selected_data_type"] == "관찰 데이터":
                     <h5 style="color: #555;">Columns Overview</h5>
                     <div style="display: flex; justify-content: space-between; text-align: center;">
                         <div>
-                            <p style="color: #007bff; font-size: 12px; margin-bottom: 5px;">Numeric Columns</p>
+                            <p style="color: #D2003B; font-size: 12px; margin-bottom: 5px;">Numeric Columns</p>
                             <p style="font-size: 18px; font-weight: bold;">{}</p>
                         </div>
                         <div>
-                            <p style="color: #007bff; font-size: 12px; margin-bottom: 5px;">Categorical Columns</p>
+                            <p style="color: #D2003B; font-size: 12px; margin-bottom: 5px;">Categorical Columns</p>
                             <p style="font-size: 18px; font-weight: bold;">{}</p>
                         </div>
                         <div>
-                            <p style="color: #007bff; font-size: 12px; margin-bottom: 5px;">Boolean Columns</p>
+                            <p style="color: #D2003B; font-size: 12px; margin-bottom: 5px;">Boolean Columns</p>
                             <p style="font-size: 18px; font-weight: bold;">{}</p>
                         </div>
                         <div>
-                            <p style="color: #007bff; font-size: 12px; margin-bottom: 5px;">Date/Time Columns</p>
+                            <p style="color: #D2003B; font-size: 12px; margin-bottom: 5px;">Date/Time Columns</p>
                             <p style="font-size: 18px; font-weight: bold;">{}</p>
                         </div>
                     </div>
@@ -425,7 +439,7 @@ elif st.session_state["selected_data_type"] == "관찰 데이터":
     # 추천 모델 출력
     def show_recommendation(model):
         st.markdown(f"""
-        <div style="border: 2px solid #4CAF50; padding: 10px; border-radius: 10px; background-color: #f9f9f9;">
+        <div style="border: 2px solid #D2003B; padding: 10px; border-radius: 10px; background-color: #f9f9f9;">
             <p style="font-size: 16px;">{model}</p>
         </div>
         """, unsafe_allow_html=True)
@@ -455,16 +469,16 @@ elif st.session_state["selected_data_type"] == "관찰 데이터":
                 parallel_trends = st.radio(
                     "평행 추세 가정이 성립하나요?", ["Yes", "No"], horizontal=True, on_change=reset_recommendation)
                 if parallel_trends == "Yes":
-                    recommendation = "이중차분법 (Difference-in-Differences, DID)"
+                    recommendation = "이중차분법 (Difference-in-Differences, DID)\n\n : 처리 집단과 통제 집단 간의 시간 변화에 따른 차이를 비교하여 인과 효과를 추정하는 방법"
                 else:
-                    recommendation = "이중차분법 (Difference-in-Differences, DID) + 매칭 (Matching) 또는 합성통제 (Synthetic Control)"
+                    recommendation = "이중차분법 (Difference-in-Differences, DID) + 매칭 (Matching) 또는 합성통제 (Synthetic Control) \n\n - 이중차분법 + 매칭 (DID + Matching): 매칭 기법으로 유사한 통제 집단을 구성한 후, 이중차분법을 적용하여 처리 집단과 통제 집단 간의 시간 변화 차이를 비교함으로써 인과 효과를 더욱 정확하게 추정하는 방법 \n\n - 합성통제 (Synthetic Control): 여러 통제 집단의 가중 평균을 사용해 가상의 통제 집단을 생성하고 이를 처리 집단과 비교하여 인과 효과를 추정하는 방법"
             else:
-                recommendation = "회귀불연속 (Regression Discontinuity)"
+                recommendation = "회귀불연속 (Regression Discontinuity)\n\n : 특정 기준에서 결과 변수의 불연속성을 활용해 효과를 평가하는 방법"
         else:
             time_series = st.radio(
                 "처치 전후의 시계열 데이터가 존재하나요?", ["Yes", "No"], horizontal=True, on_change=reset_recommendation)
             if time_series == "Yes":
-                recommendation = "단절 시계열분석 (Interrupted Time Series Analysis)"
+                recommendation = "단절 시계열분석 (Interrupted Time Series Analysis) \n\n : 개입 전후의 시간별 추세 변화를 비교하여 특정 사건이나 정책의 효과를 평가하는 방법"
             else:
                 recommendation = "연구 설계 불가"
     else:
@@ -472,14 +486,14 @@ elif st.session_state["selected_data_type"] == "관찰 데이터":
             "도구변수가 존재하나요?", ["Yes", "No"], horizontal=True, on_change=reset_recommendation)
     
         if instrumental_variable == "Yes":
-            recommendation = "2단계 최소제곱법 (2-Stage Least Squares)"
+            recommendation = "2단계 최소제곱법 (2-Stage Least Squares) \n\n : 내생성을 해결하기 위해 도구변수를 사용하여 먼저 예측값을 구한 뒤, 그 예측값을 최종 회귀분석에 사용하여 인과관계를 추정하는 방법"
         else:
             setting_clear = st.radio(
                 "처치 및 결과가 명확하고, 각 그룹에 최소 30개의 데이터가 있나요?", ["Yes", "No"], horizontal=True, on_change=reset_recommendation)
             if setting_clear == "Yes":
-                recommendation = "매칭 (Matching)"
+                recommendation = "매칭 (Matching) \n\n : 처치군과 통제군 간의 특성을 매칭하여 교란 요인을 통제한 분석 방법"
             else:
-                recommendation = "회귀분석 (Regression)"
+                recommendation = "회귀분석 (Regression) \n\n : 결과 변수에 대한 독립 변수들의 영향을 추정하여 관계를 분석하는 방법 "
     
     if st.button("추천 모델 확인"):
         st.session_state.show_recommendation = True
