@@ -46,8 +46,8 @@ def ab_test (raw, x, y):
     
     res = {
             'pre_treat': tab.iloc[0]['mean'],
-            'change_coef': round(tab.iloc[1]['mean'] - tab.iloc[0]['mean'], 2),
             'post_treat': tab.iloc[1]['mean'],
+            'change_coef': round(tab.iloc[1]['mean'] - tab.iloc[0]['mean'], 2),
             'change_perc': round((tab.iloc[1]['mean'] - tab.iloc[0]['mean']) / tab.iloc[0]['mean'] * 100, 2),
             't_stat': t_stat.round(4),
             'p_value': p_value.round(4)
@@ -62,29 +62,58 @@ def ab_test (raw, x, y):
 #ab_test(raw, 'Group', 'Time Spent')
 
 
-def did (raw, x, y, start_dt, end_dt, treat_dt):
+def did (raw, x, y, fix, treat_group, control_group, dt, start_dt, treat_dt, end_dt):
+    try:
+        raw[dt] = raw[dt].map(lambda x: x.date())
+    except:
+        pass
+    df = raw.loc[(raw[dt] >= start_dt) & 
+             (raw[dt] <= end_dt), [x, y, fix, dt]].copy()
+    df['treated'] = df[x].map(lambda x: 1 if x == treat_group else 0)
+    df['post'] = df[dt].map(lambda x: 1 if x >= treat_dt else 0)
+
+    tab = pd.DataFrame(df.groupby(['treated', 'post'])[y].mean())
+    model = smf.ols(f'{y} ~ treated:post + C({x}) + C({fix}) + C({dt})', data=df).fit()
+    #model.summary()
+    #model.conf_int().loc['treated:post'] # 95% 신뢰구간
     
-    # test
     res = {
-            'pre_treat': 305141,
-            'change_coef': round(8741.2, 2),
-            'post_treat': 313286,
-            'change_perc': round(8741.2/305141*100, 2),
-            'p_value': 0.01
+            'pre_treat': tab.loc[1, 0][y].round(1),
+            'post_treat': tab.loc[1, 1][y].round(1),
+            'change_value':tab.loc[1, 1][y].round(1) - tab.loc[1, 0][y].round(1),
+            'change_coef': model.params['treated:post'].round(2),
+            'change_perc': round(model.params['treated:post']/tab.loc[1, 0][y]*100, 2),
+            'p_value': model.pvalues['treated:post'].round(2)
     }
 
     return res
 
 
-def rd (raw, x, y, start_dt, end_dt, treat_dt):
+def rd (raw, x, y, fix, treat_group, dt, start_dt, treat_dt, end_dt):
+    try:
+        raw[dt] = raw[dt].map(lambda x: x.date())
+    except:
+        pass
+    df = raw.loc[(raw[dt] >= start_dt) & 
+                 (raw[dt] <= end_dt) & 
+                 (raw[x] == treat_group), [y, fix, dt]].copy()
     
-    # test
+    df['treated'] = (df[dt] >= treat_dt).astype(int)
+    df['diff'] = (df[dt] - treat_dt).map(lambda x: x.days).astype(int)
+
+    tab = pd.DataFrame(df.groupby('treated')[y].mean())
+    
+    model = smf.ols(f'{y} ~ treated:diff + C({fix})', data=df).fit()
+    #model.summary()
+    #model.conf_int().loc['treated:post'] # 95% 신뢰구간
+    
     res = {
-            'pre_treat': 310625,
-            'change_coef': round(5884, 2),
-            'post_treat': 299206,
-            'change_perc': round(5884/310625*100, 2),
-            'p_value': 0.01
+            'pre_treat': tab.loc[0][y].round(1),
+            'post_treat': tab.loc[1][y].round(1),
+            'change_value':tab.loc[1][y].round(1) - tab.loc[0][y].round(1),
+            'change_coef': model.params['treated:diff'].round(2),
+            'change_perc': round(model.params['treated:diff']/tab.loc[0][y]*100, 2),
+            'p_value': model.pvalues['treated:diff'].round(2)
     }
 
     return res

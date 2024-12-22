@@ -73,6 +73,9 @@ if st.sidebar.button("관찰 데이터", key="obs_data_button"):
 result_flag = False
 
 treat_column = ''
+treat_group = ''
+control_group = ''
+fix_column = ''
 outcome_column = ''
 
 data_column = ''
@@ -81,13 +84,16 @@ end_date = ''
 treat_date = ''
 
 pre_treat = ''
-change_coef = ''
 post_treat = ''
+change_value = ''
+change_coef = ''
 change_perc = ''
 change_flag = ''
 
 p_value = ''
 stats_sign = ''
+
+model = ''
 
 ###################################
 # exp data section
@@ -197,11 +203,13 @@ if st.session_state["selected_data_type"] == "실험 데이터":
         # function result
         result = cf.ab_test(data, treat_column, outcome_column)
         pre_treat = str(result['pre_treat'])
-        change_coef = str(result['change_coef'])
         post_treat = str(result['post_treat'])
+        change_coef = str(result['change_coef'])
         change_perc = str(result['change_perc']) + '%'
         if result['change_coef'] >= 0:
             change_flag = '+'
+        else:
+            change_flag = ''
         p_value = str(result['p_value'])
         if result['p_value'] <= 0.05:
             stats_sign = 'True'
@@ -264,7 +272,7 @@ if st.session_state["selected_data_type"] == "실험 데이터":
     if uploaded_file:
         if result_flag:
             st.write(f"""
-            **{treat_column}**에 따른 **{outcome_column}** 효과는 {change_flag + change_perc}로 분석되었습니다. \n
+            **{treat_column}**에 따른 **{outcome_column}** 효과는 {change_flag + change_coef}이며 {change_flag + change_perc}로 분석되었습니다. \n
             이 때, p-value는 **{p_value}**로 나타났으며 유의수준 5% 내에서 통계적 유의성은 **{stats_sign}**입니다. \n
             위 결과는 **{outcome_column}**에 대한 추가 분석을 거쳐 인과적 근거로 활용될 수 있습니다.
             """)
@@ -487,6 +495,7 @@ elif st.session_state["selected_data_type"] == "관찰 데이터":
     
     if st.button("추천 모델 적용"):
         st.success("선택한 모델이 성공적으로 적용되었습니다.")
+        model = selected_model
 
     # 추천 분석방법 적용하기 버튼
 #     if st.session_state["selected_data_type"] and "uploaded_file" in st.session_state and st.session_state["uploaded_file"]:
@@ -504,11 +513,22 @@ elif st.session_state["selected_data_type"] == "관찰 데이터":
     st.subheader("1) Treatment, Outcome")
     
     if 'data' in locals() and data is not None:
-        treat_column = st.selectbox("처치(Treatment)에 해당하는 열을 선택하세요.", options=data.columns, key="treat_column")
-        outcome_column = st.selectbox("결과(Outcome)에 해당하는 열을 선택하세요.", options=data.columns, key="outcome_column")
-    
-        st.write(f"**처치(Treatment):** {treat_column}")
-        st.write(f"**결과(Outcome):** {outcome_column}")
+        try:
+            treat_column = st.selectbox("처치(Treatment)에 해당하는 열을 선택하세요.", options=data.columns, key="treat_column")
+            treat_group = st.selectbox("처치 그룹(Treated Group)을 선택하세요.", options=data[treat_column].unique(), key="treat_group")
+            control_group = st.selectbox("대조 그룹(Control Group)을 선택하세요. (RD 선택시 미적용)", options=data[treat_column].unique(), key="control_group")
+            fix_column = st.selectbox("고정시킬 열(Fixed Column)을 선택하세요.", options=data.columns, key="fix_column")
+            outcome_column = st.selectbox("결과(Outcome)에 해당하는 열을 선택하세요.", options=data.columns, key="outcome_column")
+
+#             st.write(f"**처치(Treatment):** {treat_column}")
+#             st.write(f"**처치 그룹(Treated Group):** {treat_group}")
+#             st.write(f"**대조 그룹(Control Group):** {control_group}")
+#             st.write(f"**고정(Fixed Column):** {fix_column}")
+#             st.write(f"**결과(Outcome):** {outcome_column}")
+            
+        except:
+            pass
+
     else:
         st.warning("Please upload the data first.")
         
@@ -519,10 +539,10 @@ elif st.session_state["selected_data_type"] == "관찰 데이터":
     if 'data' not in locals() or data is None:
         st.warning("Please upload the data first.")
     else:
-        date_column = st.selectbox("날짜에 해당하는 열을 선택하세요.", options=data.columns, key="date_column")
+        date_column = st.selectbox("날짜에 해당하는 열을 선택하세요. (RD 선택 시 기준 변수)", options=data.columns, key="date_column")
         try:
             analysis_period = st.date_input(
-                "분석에 사용할 기간을 선택해주세요.",
+                "분석에 사용할 기간/범위를 선택해주세요.",
                 value = (data[date_column].min(), data[date_column].max()),  # 최소~최대 기간
                 min_value = data[date_column].min(),  # 최소 날짜
                 max_value = data[date_column].max(),  # 최대 날짜
@@ -537,7 +557,19 @@ elif st.session_state["selected_data_type"] == "관찰 데이터":
                 format = "YYYY/MM/DD"
             )
         except:
-            pass
+            analysis_period = st.date_input(
+                "분석에 사용할 기간을 선택해주세요.",
+                value = (datetime.date(2022,1,1), datetime.date(2024,10,31)),  # 최소~최대 기간
+                min_value = datetime.date(2022,1,1),  # 최소 날짜
+                max_value = datetime.date(2024,10,31),  # 최대 날짜
+                format = "YYYY/MM/DD"
+            )
+
+            treat_date = st.date_input(
+                "처치(Treatment)가 발생한 시점을 선택해주세요.",
+                value = datetime.date(2024,1,27),
+                format = "YYYY/MM/DD"
+            )
         
     if st.button("Submit"):
         st.success("선택한 정보가 성공적으로 적용되었습니다.")
@@ -548,20 +580,28 @@ elif st.session_state["selected_data_type"] == "관찰 데이터":
 
         # function result
         if selected_model == 'DID':
-            result = cf.did(data, treat_column, outcome_column, start_date, end_date, treat_date)
+            result = cf.did(data, x=treat_column, y=outcome_column, fix=fix_column, 
+                            treat_group=treat_group, control_group=control_group,
+                            dt=date_column, start_dt=start_date, treat_dt=treat_date, end_dt=end_date)
         
         elif selected_model == 'RD':
-            result = cf.rd(data, treat_column, outcome_column, start_date, end_date, treat_date)
+            result = cf.rd(data, x=treat_column, y=outcome_column, fix=fix_column, 
+                            treat_group=treat_group, 
+                            dt=date_column, start_dt=start_date, treat_dt=treat_date, end_dt=end_date)
         
         else:
             pass
-        
+
+        # function result
         pre_treat = str(result['pre_treat'])
-        change_coef = str(result['change_coef'])
         post_treat = str(result['post_treat'])
+        change_value = str(result['change_value'].round(2))
+        change_coef = str(result['change_coef'])
         change_perc = str(result['change_perc']) + '%'
         if result['change_coef'] >= 0:
             change_flag = '+'
+        else:
+            change_flag = ''
         p_value = str(result['p_value'])
         if result['p_value'] <= 0.05:
             stats_sign = 'True'
@@ -580,7 +620,7 @@ elif st.session_state["selected_data_type"] == "관찰 데이터":
         if result_flag:
             col1, col2, col3 = st.columns(3)
             col1.metric("처치 전", f"{pre_treat}")
-            col2.metric("처치 후", f"{post_treat}", f"{change_flag + change_perc}")
+            col2.metric("처치 후", f"{post_treat}", f"{change_flag + change_value}")
         else:
             st.warning("Please select variables next.")
     else:
@@ -623,10 +663,11 @@ elif st.session_state["selected_data_type"] == "관찰 데이터":
     if uploaded_file:
         if result_flag:
             st.write(f"""
-            **{start_date}**부터 **{end_date}**까지 데이터를 활용해 **{treat_date}** 발생한 **{treat_column}** 효과를 분석하였습니다. \n
-            **{treat_column}**에 따른 **{outcome_column}** 효과를 분석한 결과, {change_flag + change_perc}로 분석되었습니다. \n
+            **{start_date}**부터 **{end_date}**까지 데이터를 활용해 **{treat_date}** 발생한 처치 효과를 분석하였습니다. \n
+            **{treat_column}**에 따른 **{outcome_column}** 효과를 분석한 결과, **{change_flag + change_coef}**이며 {change_flag + change_perc}로 분석되었습니다. \n
             이 때, p-value는 **{p_value}**로 나타났으며 유의수준 5% 내에서 통계적 유의성은 **{stats_sign}**입니다. \n
-            위 결과는 **{outcome_column}**에 대한 추가 분석을 거쳐 인과적 근거로 활용될 수 있습니다.
+            위 결과는 **{treat_group}**에서의 효과이며, DID 모델의 경우 **{control_group}**의 추세가 자동으로 보정되었습니다. \n
+            이는 **{outcome_column}**에 대한 추가 분석을 거쳐 인과적 근거로 활용될 수 있습니다.
             """)
             
         else:
