@@ -234,7 +234,7 @@ if st.session_state["selected_data_type"] == "실험 데이터":
         if result_flag:
             if data[outcome_column].dtype in [object, bool]:
                 if data[outcome_column].dtype == object:
-                    data[outcome_column] = data[outcome_column].map(lambda x: 1 if str(x).lower() == 'true' else 0)
+                    data[outcome_column] = data[outcome_column].map(lambda x: 1 if (str(x).lower() == 'true') or (str(x).lower() == 'yes') else 0)
                 else:
                     data[outcome_column] = data[outcome_column].astype(int)
 
