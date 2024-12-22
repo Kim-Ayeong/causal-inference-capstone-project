@@ -35,10 +35,11 @@ from statsmodels.stats.outliers_influence import variance_inflation_factor
 
 
 def ab_test (raw, x, y):
-    try:
-        raw[y] = raw[y].map(lambda x: 1 if (str(x).lower() == 'true') or (str(x).lower() == 'yes') else 0)
-    except:
-        pass
+    if raw[y].dtype in [object, bool]:
+        if raw[y].dtype == object:
+            raw[y] = raw[y].map(lambda x: 1 if (str(x).lower() == 'true') or (str(x).lower() == 'yes') else 0)
+        else:
+            raw[y] = raw[y].astype(int)
     
     df = raw[[x, y]].copy()
     tab = df.groupby(x).agg(['mean', 'sem']).round(2) # 평균, 표준오차
