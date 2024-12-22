@@ -242,7 +242,7 @@ if st.session_state["selected_data_type"] == "실험 데이터":
         if result_flag:
             col1, col2, col3 = st.columns(3)
             col1.metric("처치 전", f"{pre_treat}")
-            col2.metric("처치 후", f"{post_treat}", f"{change_flag + change_perc}")
+            col2.metric("처치 후", f"{post_treat}", f"{change_flag + change_coef}")
         else:
             st.warning("Please select variables next.")
     else:
