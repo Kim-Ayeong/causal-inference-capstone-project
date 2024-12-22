@@ -680,7 +680,8 @@ elif st.session_state["selected_data_type"] == "관찰 데이터":
             **{start_date}**부터 **{end_date}**까지 데이터를 활용해 **{treat_date}** 발생한 처치 효과를 분석하였습니다. \n
             **{treat_column}**에 따른 **{outcome_column}** 효과를 분석한 결과, **{change_flag + change_coef}**이며 {change_flag + change_perc}로 분석되었습니다. \n
             이 때, p-value는 **{p_value}**로 나타났으며 유의수준 5% 내에서 통계적 유의성은 **{stats_sign}**입니다. \n
-            위 결과는 **{treat_group}**에서의 효과이며, DID 모델의 경우 **{control_group}**의 추세가 자동으로 보정되었습니다. \n
+            위 결과는 DID 모델의 경우, **{control_group}**의 추세가 보정된 **{treat_group}**에서의 순수한 처치 효과이고, 
+            RD 모델의 경우, **{treat_group}** 내에서 처치 발생 이전의 추세가 보정된 순수한 처치 효과를 의미합니다.\n
             이는 **{outcome_column}**에 대한 추가 분석을 거쳐 인과적 근거로 활용될 수 있습니다.
             """)
             
