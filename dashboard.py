@@ -483,7 +483,7 @@ elif st.session_state["selected_data_type"] == "관찰 데이터":
             setting_clear = st.radio(
                 "처치 및 결과가 명확하고, 각 그룹에 최소 30개의 데이터가 있나요?", ["Yes", "No"], horizontal=True, on_change=reset_recommendation)
             if setting_clear == "Yes":
-                recommendation = "매칭 (Matching) \n\n : 처치군과 통제군 간의 특성을 매칭하여 혼란 변수를 통제한 분석 방법"
+                recommendation = "매칭 (Matching) \n\n : 처치군과 통제군 간의 특성을 매칭하여 교란 요인을 통제한 분석 방법"
             else:
                 recommendation = "회귀분석 (Regression) \n\n : 결과 변수에 대한 독립 변수들의 영향을 추정하여 관계를 분석하는 방법 "
     
