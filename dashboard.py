@@ -8,7 +8,7 @@ import datetime
 import altair as alt
 from PIL import Image
 import causal_function as cf
-from fpdf import FPDF
+#from fpdf import FPDF
 import base64
 
 st.set_page_config(layout="wide")
