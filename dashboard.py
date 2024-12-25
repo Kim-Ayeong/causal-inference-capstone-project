@@ -28,6 +28,7 @@ def get_image_base64(image_path):
         return base64.b64encode(img_file.read()).decode()
 
 image_base64 = get_image_base64('./other/lgcns_korea_logo_transparent.png')
+image_flowchart = get_image_base64('./data/flowchart_image.jpg')
 
 st.sidebar.markdown(
     f"""
@@ -450,8 +451,14 @@ elif st.session_state["selected_data_type"] == "관찰 데이터":
     
     # flowchart
     with st.expander("Causal Inference Flowchart"):
-        flowchart_image = Image.open('./data/flowchart_image.jpg')
-        st.image(flowchart_image, caption='', use_column_width=True)
+#         flowchart_image = Image.open('./data/flowchart_image.jpg')
+#         st.image(flowchart_image, caption='', use_column_width=True)
+        st.markdown(
+            f"""
+            <img src="data:image/png;base64,{image_flowchart}" style="width:100%;">
+            """,
+            unsafe_allow_html=True
+        )
     
     # process
     experimental_design = st.radio(
