@@ -28,7 +28,7 @@ def get_image_base64(image_path):
         return base64.b64encode(img_file.read()).decode()
 
 image_logo = get_image_base64('./image/lgcns_korea_logo_transparent.png')
-image_flowchart = get_image_base64('./image/flowchart_image.jpg')
+image_flowchart = get_image_base64('./image/flowchart_image.png')
 
 st.sidebar.markdown(
     f"""
