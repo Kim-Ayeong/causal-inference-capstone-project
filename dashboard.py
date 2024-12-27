@@ -27,12 +27,12 @@ def get_image_base64(image_path):
     with open(image_path, "rb") as img_file:
         return base64.b64encode(img_file.read()).decode()
 
-image_base64 = get_image_base64('./other/lgcns_korea_logo_transparent.png')
-image_flowchart = get_image_base64('./data/flowchart_image.jpg')
+image_logo = get_image_base64('./image/lgcns_korea_logo_transparent.png')
+image_flowchart = get_image_base64('./image/flowchart_image.jpg')
 
 st.sidebar.markdown(
     f"""
-    <img src="data:image/png;base64,{image_base64}" style="width:100%;">
+    <img src="data:image/png;base64,{image_logo}" style="width:100%;">
     """,
     unsafe_allow_html=True
 )
