@@ -92,6 +92,7 @@ treat_group = ''
 control_group = ''
 fix_column = ''
 outcome_column = ''
+outcome_dtype = ''
 
 data_column = ''
 start_date = ''
@@ -214,6 +215,7 @@ if st.session_state["selected_data_type"] == "실험 데이터":
     if st.button("Submit"):
         st.success("선택한 정보가 성공적으로 적용되었습니다.")
         result_flag = True
+        outcome_dtype = data[outcome_column].dtypes
         
         # function result
         result = cf.ab_test(data, treat_column, outcome_column)
@@ -255,16 +257,19 @@ if st.session_state["selected_data_type"] == "실험 데이터":
     
     if uploaded_file:
         if result_flag:
-            if data[outcome_column].dtypes in [object, bool]:
-                if data[outcome_column].dtypes == object:
-                    data[outcome_column] = data[outcome_column].map(lambda x: 1 if (str(x).lower() == 'true') or (str(x).lower() == 'yes') else 0)
-                else:
-                    data[outcome_column] = data[outcome_column].astype(int)
-
+            if outcome_dtype in ['object', 'bool']:
+                data[outcome_column] = data[outcome_column].astype(float)
+#                 if outcome_dtype == 'object':
+#                     st.warning(data.groupby(treat_column)[outcome_column].value_counts())
+#                     #data[outcome_column] = data[outcome_column].map(lambda x: 1 if str(x).lower() in ['true', 'yes'] else 0)
+#                     data[outcome_column] = data[outcome_column].astype(float)
+#                 else:
+#                     data[outcome_column] = data[outcome_column].astype(float)
+                
                 st.write("#### Bar Plot")
                 bar_plot = alt.Chart(data).mark_bar(size=100).encode(
-                    x=alt.X(f'{treat_column}:N'),
-                    y=alt.Y(f'mean({outcome_column}):Q'),
+                     x=alt.X(treat_column),
+                     y=alt.Y(f'mean({outcome_column})')
                 )
                 st.altair_chart(bar_plot, use_container_width=True)
 
